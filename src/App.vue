@@ -59,7 +59,7 @@ export default {
     },
 
     removeNode() {
-      for (const nodeId of selectedNodes) {
+      for (const nodeId of this.selectedNodes) {
         delete this.nodes[nodeId];
       }
     },
