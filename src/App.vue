@@ -1,21 +1,32 @@
 <template>
   <div class="demo-control-panel">
-    <div>
-      <label>Node:</label>
-      <el-button @click="addNode">add</el-button>
-      <el-button :disabled="selectedNodes.length == 0" @click="removeNode"
-        >remove</el-button
-      >
-    </div>
-    <div>
-      <label>Edge:</label>
-      <el-button :disabled="selectedNodes.length != 2" @click="addEdge"
-        >add</el-button
-      >
-      <el-button :disabled="selectedEdges.length == 0" @click="removeEdge"
-        >remove</el-button
-      >
-    </div>
+    <el-row :gutter="20">
+      <div>
+        <label>Node:</label>
+        <el-button type="primary" @click="addNode">add</el-button>
+        <el-button
+          type="danger"
+          :disabled="selectedNodes.length == 0"
+          @click="removeNode"
+          >remove</el-button
+        >
+      </div>
+      <div>
+        <label>Edge:</label>
+        <el-button
+          type="primary"
+          :disabled="selectedNodes.length != 2"
+          @click="addEdge"
+          >add</el-button
+        >
+        <el-button
+          type="danger"
+          :disabled="selectedEdges.length == 0"
+          @click="removeEdge"
+          >remove</el-button
+        >
+      </div>
+    </el-row>
   </div>
 
   <v-network-graph
@@ -25,36 +36,59 @@
     :edges="edges"
     :layouts="layouts"
     :configs="configs"
+    class="main-box"
   />
 </template>
 
 <script>
 // import { nodes, edges , layouts} from "./data";
 import { reactive, ref } from "vue";
-import dataInfo  from "./data";
-console.log(dataInfo)
+import dataInfo from "./data";
+import config from "./configs";
+import get from "./requests/get";
+import post from "./requests/post";
+import { extractNodes } from "../utils/extract-nodes";
+import { extractEdges } from "../utils/extract-edges";
+console.log(dataInfo);
 
 export default {
   data() {
     return {
-      nodes: { ...dataInfo.nodes },
-      edges: { ...dataInfo.edges },
-      nextEdgeIndex: Object.keys(dataInfo.edges).length + 1,
-      nextNodeIndex: Object.keys(dataInfo.nodes).length + 1,
+      nodes: {},
+      edges: {},
+      nextEdgeIndex: 0,
+      nextNodeIndex: 0,
       layouts: dataInfo.layouts,
-      configs: dataInfo.configs,
+      configs: config.configs,
       selectedEdges: [],
       selectedNodes: [],
     };
   },
-  created() {
-    console.log("-----------------------------",this.nextNodeIndex);
+  async created() {
+    await this.getAllNodes();
+    await this.getAllEdges();
   },
   methods: {
-    addNode() {
-      const nodeId = `node${this.nextNodeIndex}`;
-      const name = `N${this.nextNodeIndex}`;
-      this.nodes[nodeId] = { name };
+    async getAllNodes() {
+      const { data: nodes } = await get(`api/users`);
+      this.nodes = extractNodes(nodes);
+      this.nextNodeIndex= Object.keys(this.nodes).length + 1;
+    },
+    async getAllEdges() {
+      const { data: edges } = await get(`api/relations`);
+      this.edges = extractEdges(edges);
+      this.nextEdgeIndex= Object.keys(this.edges).length + 1;
+    },
+    async addNode() {
+      let { data: node } = await post("api/users", {
+        name: Math.random().toString(36).slice(2),
+        personalId: Math.random().toString(36).slice(2),
+      });
+      const nodeId = node.elementId;
+      const name = node.properties.name;
+      const personalId = node.properties.personalId;
+
+      this.nodes[nodeId] = { name, personalId };
       this.nextNodeIndex++;
     },
 
@@ -64,10 +98,15 @@ export default {
       }
     },
 
-    addEdge() {
+    async addEdge() {
+
       if (this.selectedNodes.length !== 2) return;
       const [source, target] = this.selectedNodes;
-      const edgeId = `edge${this.nextEdgeIndex}`;
+      let { data: edge } = await post("api/users/relation", {
+        from: source,
+        to: target,
+      });
+      const edgeId = edge[0]._fields[0].elementId;
       this.edges[edgeId] = { source, target };
       this.nextEdgeIndex++;
     },
@@ -86,5 +125,11 @@ export default {
   width: 800px;
   height: 600px;
   border: 1px solid #000;
+}
+label {
+  margin: 1rem;
+}
+.main-box {
+  height: 1000px;
 }
 </style>

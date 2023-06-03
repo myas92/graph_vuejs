@@ -1,0 +1,22 @@
+const axios = require("axios");
+const Cookies = require("js-cookie");
+
+module.exports = async (path, body) => {
+  const serverAddress = process.env.VUE_APP_SERVER_ADDRESS;
+  try {
+    let config = {
+      method: 'post',
+      url: `${serverAddress}/${path}`,
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      data : body
+    };
+
+    let { data } = await axios(config)
+    return { data: data.result }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
