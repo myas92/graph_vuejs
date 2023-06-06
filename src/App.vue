@@ -85,8 +85,8 @@ export default {
     },
     async addNode() {
       let { data: node } = await post("api/users", {
-        name: Math.random().toString(36).slice(2),
-        personalId: Math.random().toString(36).slice(2),
+        name: Math.random().toString(36).slice(2), // Generate a random name
+        personalId: Math.random().toString(36).slice(2),  // Generate a random personalId
       });
       const nodeId = node.elementId;
       const name = node.properties.name;
