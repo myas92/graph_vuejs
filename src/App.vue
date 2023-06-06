@@ -47,6 +47,7 @@ import dataInfo from "./data";
 import config from "./configs";
 import get from "./requests/get";
 import post from "./requests/post";
+import remove from "./requests/remove";
 import { extractNodes } from "../utils/extract-nodes";
 import { extractEdges } from "../utils/extract-edges";
 console.log(dataInfo);
@@ -92,8 +93,9 @@ export default {
       this.nextNodeIndex++;
     },
 
-    removeNode() {
+    async removeNode() {
       for (const nodeId of this.selectedNodes) {
+        await remove(`api/users/${nodeId}`)
         delete this.nodes[nodeId];
       }
     },
@@ -111,8 +113,9 @@ export default {
       this.nextEdgeIndex++;
     },
 
-    removeEdge() {
+    async removeEdge() {
       for (const edgeId of this.selectedEdges) {
+        await remove(`api/relations/${edgeId}`)
         delete this.edges[edgeId];
       }
     },

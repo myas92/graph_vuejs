@@ -4,7 +4,7 @@ module.exports = async (path, body={}) => {
   const serverAddress = process.env.VUE_APP_SERVER_ADDRESS;
   try {
     let config = {
-      method: 'post',
+      method: 'delete',
       url: `${serverAddress}/${path}`,
       headers: { 
         'Content-Type': 'application/json'
