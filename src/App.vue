@@ -25,6 +25,9 @@
           @click="removeEdge"
           >remove</el-button
         >
+                <label>Action:</label>
+        <el-button type="danger" @click="removeAllNodes"
+          >remove all nodes</el-button>
       </div>
     </el-row>
   </div>
@@ -73,12 +76,12 @@ export default {
     async getAllNodes() {
       const { data: nodes } = await get(`api/users`);
       this.nodes = extractNodes(nodes);
-      this.nextNodeIndex= Object.keys(this.nodes).length + 1;
+      this.nextNodeIndex = Object.keys(this.nodes).length + 1;
     },
     async getAllEdges() {
       const { data: edges } = await get(`api/relations`);
       this.edges = extractEdges(edges);
-      this.nextEdgeIndex= Object.keys(this.edges).length + 1;
+      this.nextEdgeIndex = Object.keys(this.edges).length + 1;
     },
     async addNode() {
       let { data: node } = await post("api/users", {
@@ -95,16 +98,15 @@ export default {
 
     async removeNode() {
       for (const nodeId of this.selectedNodes) {
-        await remove(`api/users/${nodeId}`)
+        await remove(`api/users/${nodeId}`);
         delete this.nodes[nodeId];
       }
     },
 
     async addEdge() {
-
       if (this.selectedNodes.length !== 2) return;
       const [source, target] = this.selectedNodes;
-      let { data: edge } = await post("api/users/relation", {
+      let { data: edge } = await post("api/relations", {
         from: source,
         to: target,
       });
@@ -115,9 +117,17 @@ export default {
 
     async removeEdge() {
       for (const edgeId of this.selectedEdges) {
-        await remove(`api/relations/${edgeId}`)
+        await remove(`api/relations/${edgeId}`);
         delete this.edges[edgeId];
       }
+    },
+
+    async removeAllNodes() {
+      await remove(`api/users`);
+      this.nodes = {};
+      this.edges = {};
+      this.nextEdgeIndex = 0;
+      this.nextNodeIndex = 0;
     },
   },
 };
@@ -134,5 +144,8 @@ label {
 }
 .main-box {
   height: 1000px;
+}
+el-row{
+  margin: 1rem
 }
 </style>
