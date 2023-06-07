@@ -3,7 +3,7 @@
     <el-row :gutter="20">
       <div>
         <label>Node:</label>
-        <el-button type="primary" @click="addNode">add</el-button>
+        <el-button type="primary" @click="addUserModalVisibleHandler">add</el-button>
         <el-button
           type="danger"
           :disabled="selectedNodes.length == 0"
@@ -25,9 +25,14 @@
           @click="removeEdge"
           >remove</el-button
         >
-                <label>Action:</label>
+        <label>Action:</label>
         <el-button type="danger" @click="removeAllNodes"
-          >remove all nodes</el-button>
+          >remove all nodes</el-button
+        >
+        <el-button text @click="addUserModalVisibleHandler">
+          open a Form nested Dialog
+        </el-button>
+        <AddUserModal v-if="addUserModalVisible"/>
       </div>
     </el-row>
   </div>
@@ -45,7 +50,6 @@
 
 <script>
 // import { nodes, edges , layouts} from "./data";
-import { reactive, ref } from "vue";
 import dataInfo from "./data";
 import config from "./configs";
 import get from "./requests/get";
@@ -53,11 +57,14 @@ import post from "./requests/post";
 import remove from "./requests/remove";
 import { extractNodes } from "../utils/extract-nodes";
 import { extractEdges } from "../utils/extract-edges";
-console.log(dataInfo);
-
+import AddUserModal from "./AddUserModal.vue";
 export default {
+  components: {
+    AddUserModal,
+  },
   data() {
     return {
+      addUserModalVisible: false,
       nodes: {},
       edges: {},
       nextEdgeIndex: 0,
@@ -68,6 +75,22 @@ export default {
       selectedNodes: [],
     };
   },
+    computed: {
+    checkUpdatedNodes() {
+      return this.$store.state.nodes;
+    },
+    checkAddUserModal() {
+      return this.$store.state.addUserModalVisible;
+    },
+  },
+  watch: {
+    checkUpdatedNodes() {
+      this.nodes = this.$store.state.nodes
+    },
+    checkAddUserModal(){
+      this.addUserModalVisible = this.$store.state.addUserModalVisible
+    }
+  },
   async created() {
     await this.getAllNodes();
     await this.getAllEdges();
@@ -77,6 +100,7 @@ export default {
       const { data: nodes } = await get(`api/users`);
       this.nodes = extractNodes(nodes);
       this.nextNodeIndex = Object.keys(this.nodes).length + 1;
+      this.$store.commit('setNodes', this.nodes)
     },
     async getAllEdges() {
       const { data: edges } = await get(`api/relations`);
@@ -86,7 +110,7 @@ export default {
     async addNode() {
       let { data: node } = await post("api/users", {
         name: Math.random().toString(36).slice(2), // Generate a random name
-        personalId: Math.random().toString(36).slice(2),  // Generate a random personalId
+        personalId: Math.random().toString(36).slice(2), // Generate a random personalId
       });
       const nodeId = node.elementId;
       const name = node.properties.name;
@@ -129,6 +153,9 @@ export default {
       this.nextEdgeIndex = 0;
       this.nextNodeIndex = 0;
     },
+    addUserModalVisibleHandler(){
+      this.$store.commit('setAddUserModalVisible', true)
+    }
   },
 };
 </script>
@@ -145,7 +172,7 @@ label {
 .main-box {
   height: 1000px;
 }
-el-row{
-  margin: 1rem
+el-row {
+  margin: 1rem;
 }
 </style>

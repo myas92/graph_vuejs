@@ -1,5 +1,4 @@
 extractNodes = (neoNodes) => {
-    console.log("First Node-----------------", neoNodes)
     let nodes = {}
     neoNodes.map((node, index) => {
         nodes[`${node._fields[0].elementId}`] = {
@@ -8,7 +7,6 @@ extractNodes = (neoNodes) => {
              }
     })
 
-    console.log("End Node----------------->", nodes)
     return nodes;
 
 }
