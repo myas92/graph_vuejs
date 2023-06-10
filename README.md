@@ -22,3 +22,13 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### Add Router
+```
+vue add router
+```
+
+### add VUEX
+```
+vue add vuex
+```
