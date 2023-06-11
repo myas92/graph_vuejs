@@ -1,51 +1,79 @@
 <template>
-  <div class="demo-control-panel">
-    <el-row :gutter="20">
-      <div>
-        <label>Node:</label>
-        <el-button type="primary" @click="addUserModalVisibleHandler">add</el-button>
-        <el-button
-          type="danger"
-          :disabled="selectedNodes.length == 0"
-          @click="removeNode"
-          >remove</el-button
-        >
-      </div>
-      <div>
-        <label>Edge:</label>
-        <el-button
-          type="primary"
-          :disabled="selectedNodes.length != 2"
-          @click="addEdge"
-          >add</el-button
-        >
-        <el-button
-          type="danger"
-          :disabled="selectedEdges.length == 0"
-          @click="removeEdge"
-          >remove</el-button
-        >
-        <label>Action:</label>
-        <el-button type="danger" @click="removeAllNodes"
-          >remove all nodes</el-button
-        >
-        <el-button text @click="addUserModalVisibleHandler">
-          open a Form nested Dialog
-        </el-button>
-        <AddUserModal v-if="addUserModalVisible"/>
-      </div>
-    </el-row>
+  <div class="common-layout">
+    <el-container>
+      <el-aside class="demo-control-panel" width="30%">
+        <el-col class="m-1" :span="20">
+          <el-row :gutter="10">
+            <el-col :span="9">
+            
+              <el-button
+                class="btn-100"
+                type="primary"
+                @click="addUserModalVisibleHandler"
+              >
+                Add Node
+              </el-button>
+            </el-col>
+          </el-row>
+        </el-col>
+
+        <el-col class="m-1" :span="20">
+          <el-row :gutter="10">
+            <el-col :span="9">
+              <el-button
+                class="btn-100"
+                type="primary"
+                :disabled="selectedNodes.length != 2"
+                @click="addEdge"
+                >add</el-button
+              >
+            </el-col>
+            <el-col :span="9">
+              <el-button
+                class="btn-100"
+                type="danger"
+                :disabled="selectedEdges.length == 0"
+                @click="removeEdge"
+                >remove</el-button
+              >
+            </el-col>
+          </el-row>
+        </el-col>
+
+        <el-col class="m-1" :span="15">
+          <el-button class="btn-100" type="danger" @click="removeAllNodes"
+            >remove all nodes</el-button
+          >
+        </el-col>
+        <el-col :span="15" class="m-1" v-if="selectedLabel == 'Person'">
+          <div v-if="isVisiblePersonProfileComponent">
+            <personal-profile :personalInfo="selectedInfo" />
+          </div>
+        </el-col>
+      </el-aside>
+      <el-container>
+
+        <AddNodeModal v-if="isVisibleAddNodeModal" />
+        <!-- <el-header>Header</el-header>
+        <el-footer>Footer</el-footer> -->
+        <el-main>
+          <v-network-graph
+            v-model:selected-nodes="selectedNodes"
+            v-model:selected-edges="selectedEdges"
+            :nodes="nodes"
+            :edges="edges"
+            :layouts="layouts"
+            :configs="configs"
+            :event-handlers="eventHandlers()"
+            class="main-box"
+          />
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 
-  <v-network-graph
-    v-model:selected-nodes="selectedNodes"
-    v-model:selected-edges="selectedEdges"
-    :nodes="nodes"
-    :edges="edges"
-    :layouts="layouts"
-    :configs="configs"
-    class="main-box"
-  />
+  <div class="demo-control-panel"></div>
+  <div></div>
 </template>
 
 <script>
@@ -57,14 +85,16 @@ import post from "../requests/post";
 import remove from "../requests/remove";
 import extractNodes from "../utils/extract-nodes";
 import { extractEdges } from "../utils/extract-edges";
-import AddUserModal from "./AddNodeModal.vue";
+import AddNodeModal from "./AddNodeModal.vue";
+import PersonalProfile from "./PersonProfile.vue";
 export default {
   components: {
-    AddUserModal,
+    AddNodeModal,
+    PersonalProfile,
   },
   data() {
     return {
-      addUserModalVisible: false,
+      isVisibleAddNodeModal: false,
       nodes: {},
       edges: {},
       nextEdgeIndex: 0,
@@ -73,34 +103,58 @@ export default {
       configs: config.configs,
       selectedEdges: [],
       selectedNodes: [],
+      selectedInfo: {},
+      selectedLabel: "",
+      isVisiblePersonProfileComponent: false,
     };
   },
-    computed: {
+  computed: {
     checkUpdatedNodes() {
       return this.$store.state.nodes;
     },
     checkAddUserModal() {
-      return this.$store.state.addUserModalVisible;
+      return this.$store.state.isVisibleAddNodeModal;
+    },
+    checkPersonProfileModal() {
+      return this.$store.state.isVisiblePersonProfile;
     },
   },
   watch: {
     checkUpdatedNodes() {
-      this.nodes = this.$store.state.nodes
+      this.nodes = this.$store.state.nodes;
     },
-    checkAddUserModal(){
-      this.addUserModalVisible = this.$store.state.addUserModalVisible
-    }
+    checkAddUserModal() {
+      this.isVisibleAddNodeModal = this.$store.state.isVisibleAddNodeModal;
+    },
+    checkPersonProfileModal() {
+      this.isVisiblePersonProfileComponent = this.$store.state.isVisiblePersonProfile;
+    },
   },
   async created() {
     await this.getAllNodes();
     await this.getAllEdges();
   },
   methods: {
+    eventHandlers() {
+      return {
+        "node:click": async ({ node }) => {
+          this.$store.commit("setVisiblePersonProfile", true);
+          // toggle
+          let { data } = await get(`api/users/${node}`);
+          let resNode = data[0]._fields[0];
+          if (resNode.labels[0] == "Person") {
+            this.selectedInfo = resNode.properties;
+            this.selectedInfo.nodeId = resNode.elementId;
+            this.selectedLabel = resNode.labels[0];
+          }
+        },
+      };
+    },
     async getAllNodes() {
       const { data: nodes } = await get(`api/nodes`);
       this.nodes = extractNodes(nodes);
       this.nextNodeIndex = Object.keys(this.nodes).length + 1;
-      this.$store.commit('setNodes', this.nodes)
+      this.$store.commit("setNodes", this.nodes);
     },
     async getAllEdges() {
       const { data: edges } = await get(`api/relations`);
@@ -153,9 +207,12 @@ export default {
       this.nextEdgeIndex = 0;
       this.nextNodeIndex = 0;
     },
-    addUserModalVisibleHandler(){
-      this.$store.commit('setAddUserModalVisible', true)
-    }
+    addUserModalVisibleHandler() {
+      this.$store.commit("setAddUserModalVisible", true);
+    },
+    setVisiblePersonProfileHandler() {
+      this.$store.commit("setVisiblePersonProfile", true);
+    },
   },
 };
 </script>
@@ -174,5 +231,18 @@ label {
 }
 el-row {
   margin: 1rem;
+}
+el-col {
+  margin: 1rem;
+}
+
+.m-1 {
+  margin: 1rem;
+}
+.bg-red {
+  background-color: rgb(184, 183, 183);
+}
+.btn-100 {
+  width: 100% !important;
 }
 </style>

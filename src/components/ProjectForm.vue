@@ -1,5 +1,9 @@
 <template>
-  <el-form :model="form" @keyup.enter="addNode">
+  <el-form
+      label-position="left"
+    label-width="100px"
+    style="max-width: 460px"
+  :model="form" @keyup.enter="addNode">
     <el-form-item label="name">
       <el-input v-model="form.name" autocomplete="off" />
     </el-form-item>
@@ -77,8 +81,5 @@ export default {
 }
 .el-input {
   width: 300px;
-}
-.dialog-footer button:first-child {
-  margin-right: 10px;
 }
 </style>

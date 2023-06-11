@@ -4,7 +4,9 @@
     title="Add Node"
     :before-close="addUserModalVisibleHandler"
   >
-    <el-form :model="form">
+    <el-form       label-position="left"
+    label-width="100px"
+    style="max-width: 460px" :model="form">
       <el-form-item label="Type Entity">
         <el-select v-model="form.node" placeholder="Please select a type">
           <el-option label="Person" value="Person" />
