@@ -1,13 +1,12 @@
-extractEdges = (neoEdges) => {
+import setEdgeIntoEdges from"./set-edge-into-edges";
+const extractEdges = (neoEdges) => {
     let edges= {}
-    neoEdges.map((edge,index)=>{
-        edges[`${edge._fields[0].elementId}`]={source : `${edge._fields[0].startNodeElementId}`, target:`${edge._fields[0].endNodeElementId }`}
+    neoEdges.map((edge)=>{
+        edges = setEdgeIntoEdges(edges, edge._fields[0])
     })
 
     return edges;
     
 }
 
-module.exports = {
-    extractEdges
-}
+export default extractEdges

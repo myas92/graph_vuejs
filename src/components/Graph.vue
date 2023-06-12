@@ -5,7 +5,6 @@
         <el-col class="m-1" :span="20">
           <el-row :gutter="10">
             <el-col :span="9">
-            
               <el-button
                 class="btn-100"
                 type="primary"
@@ -52,10 +51,29 @@
         </el-col>
       </el-aside>
       <el-container>
-
         <AddNodeModal v-if="isVisibleAddNodeModal" />
-        <!-- <el-header>Header</el-header>
-        <el-footer>Footer</el-footer> -->
+        <el-header>
+          <el-col :span="8">
+            <el-autocomplete
+              v-model="inputSearch"
+              :fetch-suggestions="querySearch"
+              :trigger-on-focus="false"
+              clearable
+              class="inline-input w-50"
+              placeholder="Please Input"
+              @select="handleSelect"
+              @change="refresh"
+            />
+            <el-input-number
+              v-model="deep"
+              :min="1"
+              :max="10"
+              @change="deepSearchHandler"
+              :disabled="inputSearch.length == 0"
+            />
+          </el-col>
+        </el-header>
+        <!-- <el-footer>Footer</el-footer> -->
         <el-main>
           <v-network-graph
             v-model:selected-nodes="selectedNodes"
@@ -84,16 +102,22 @@ import get from "../requests/get";
 import post from "../requests/post";
 import remove from "../requests/remove";
 import extractNodes from "../utils/extract-nodes";
-import { extractEdges } from "../utils/extract-edges";
+import extractEdges from "../utils/extract-edges";
+import extractNodesRelations from "../utils/extract-nodes-relations";
 import AddNodeModal from "./AddNodeModal.vue";
 import PersonalProfile from "./PersonProfile.vue";
+import { Search } from "@element-plus/icons-vue";
+import { markRaw } from "vue";
 export default {
   components: {
     AddNodeModal,
     PersonalProfile,
+    Search,
   },
   data() {
     return {
+      Search: markRaw(Search),
+      inputSearch: "",
       isVisibleAddNodeModal: false,
       nodes: {},
       edges: {},
@@ -106,6 +130,8 @@ export default {
       selectedInfo: {},
       selectedLabel: "",
       isVisiblePersonProfileComponent: false,
+      deep: 1,
+      nodeSearched: "",
     };
   },
   computed: {
@@ -127,7 +153,8 @@ export default {
       this.isVisibleAddNodeModal = this.$store.state.isVisibleAddNodeModal;
     },
     checkPersonProfileModal() {
-      this.isVisiblePersonProfileComponent = this.$store.state.isVisiblePersonProfile;
+      this.isVisiblePersonProfileComponent =
+        this.$store.state.isVisiblePersonProfile;
     },
   },
   async created() {
@@ -137,7 +164,7 @@ export default {
   methods: {
     eventHandlers() {
       return {
-        "node:click": async ({ node }) => {
+        "node:dblclick": async ({ node }) => {
           this.$store.commit("setVisiblePersonProfile", true);
           // toggle
           let { data } = await get(`api/users/${node}`);
@@ -212,6 +239,62 @@ export default {
     },
     setVisiblePersonProfileHandler() {
       this.$store.commit("setVisiblePersonProfile", true);
+    },
+
+    async querySearch(queryString) {
+      if (queryString == "") {
+        await this.getAllNodes();
+        await this.getAllEdges();
+      }
+      const { data: nodes } = await get(
+        `api/nodes/search?input=${queryString}`
+      );
+      let result = [];
+      nodes.map((node) => {
+        let currNode = node._fields[0];
+        const elementId = currNode.elementId;
+        const name = currNode.properties.name;
+        const label = currNode.labels[0];
+        let obj = {
+          value: `${name}:${label}`,
+          elementId: elementId,
+        };
+        result.push(obj);
+      });
+      return result;
+    },
+
+    async handleSelect(item) {
+      console.log(item);
+      let response;
+      this.nodeSearched = item;
+      this.inputSearch = item.value.split(":")[0];
+      response = await get(`api/nodes/${item.elementId}/deep/1`);
+
+      if (response.data.length == 0) {
+        response = await get(`api/nodes/${item.elementId}`);
+        this.nodes = extractNodes(response.data);
+        this.edges = {};
+      } else {
+        let { nodes, edges } = extractNodesRelations(response.data);
+        this.nodes = nodes;
+        this.edges = edges;
+      }
+      this.$store.commit("setNodes", this.nodes);
+    },
+    async deepSearchHandler(item) {
+      const { data: response } = await get(
+        `api/nodes/${this.nodeSearched.elementId}/deep/${item}`
+      );
+      let { nodes, edges } = extractNodesRelations(response);
+      this.nodes = nodes;
+      this.edges = edges;
+      this.$store.commit("setNodes", this.nodes);
+    },
+
+    async refresh() {
+      await this.getAllNodes();
+      await this.getAllEdges();
     },
   },
 };

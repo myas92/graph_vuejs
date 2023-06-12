@@ -12,6 +12,16 @@
     <el-form-item label="personal Id">
       <el-input v-model="form.personalId" autocomplete="off" />
     </el-form-item>
+    <el-form-item label="Activity zone">
+      <el-select v-model="form.team" placeholder="please select your zone">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </el-form-item>
   </el-form>
   <span class="dialog-footer">
     <el-button
@@ -26,6 +36,7 @@
 <script>
 import post from "../requests/post";
 import { NODES_CONFIG } from "../helpers/nodes-config";
+import { COLOR_TEAM } from '@/helpers/color-team';
 export default {
   name: "PersonForm",
   data() {
@@ -34,7 +45,18 @@ export default {
       form: {
         name: "",
         personalId: "",
+        team:""
       },
+      options: [
+        {
+          value: "network",
+          label: "Network",
+        },
+        {
+          value: "devops",
+          label: "Devops",
+        },
+      ],
     };
   },
   async created() {},
@@ -43,10 +65,11 @@ export default {
       let nodeType = "Person";
       let nodes;
       let node;
-      const { name, personalId } = this.form;
+      const { name, personalId, team } = this.form;
       let { data } = await post("api/users", {
         name: name != "" ? name : Math.random().toString(36).slice(2),
         personalId: personalId,
+        team: team
       });
       node = data;
       const nodeId = node.elementId;
@@ -54,6 +77,7 @@ export default {
       nodes[nodeId] = {
         ...node.properties,
         ...NODES_CONFIG[nodeType],
+         color: COLOR_TEAM[team]
       };
 
       this.$store.commit("setNodes", nodes);
