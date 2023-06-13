@@ -4,9 +4,12 @@
     title="Add Node"
     :before-close="addUserModalVisibleHandler"
   >
-    <el-form       label-position="left"
-    label-width="100px"
-    style="max-width: 460px" :model="form">
+    <el-form
+      label-position="left"
+      label-width="100px"
+      style="max-width: 460px"
+      :model="form"
+    >
       <el-form-item label="Type Entity">
         <el-select v-model="form.node" placeholder="Please select a type">
           <el-option label="Person" value="Person" />
@@ -17,7 +20,7 @@
         </el-select>
       </el-form-item>
       <div v-if="form.node == 'Person'">
-        <PersonForm/>
+        <PersonForm />
       </div>
       <div v-if="form.node == 'Project'">
         <ProjectForm />
@@ -33,13 +36,13 @@
 </template>
 
 <script>
-import PersonForm from './PersonForm.vue'
-import ProjectForm from './ProjectForm.vue'
+import PersonForm from "./person/PersonForm.vue";
+import ProjectForm from "./project/ProjectForm.vue";
 export default {
   name: "MyComponent",
   components: {
     PersonForm,
-    ProjectForm
+    ProjectForm,
   },
   data() {
     return {

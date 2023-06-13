@@ -8,7 +8,7 @@
               <el-button
                 class="btn-100"
                 type="primary"
-                @click="addUserModalVisibleHandler"
+                @click="addNodeModalVisibleHandler"
               >
                 Add Node
               </el-button>
@@ -23,7 +23,7 @@
                 class="btn-100"
                 type="primary"
                 :disabled="selectedNodes.length != 2"
-                @click="addEdge"
+                @click="addEdgeModalVisibleHandler"
                 >add</el-button
               >
             </el-col>
@@ -52,6 +52,7 @@
       </el-aside>
       <el-container>
         <AddNodeModal v-if="isVisibleAddNodeModal" />
+        <AddEdgeModal v-if="isVisibleAddEdgeModal" />
         <el-header>
           <el-col :span="8">
             <el-autocomplete
@@ -76,6 +77,7 @@
         <!-- <el-footer>Footer</el-footer> -->
         <el-main>
           <v-network-graph
+          v-model:zoom-level="zoomLevel"
             v-model:selected-nodes="selectedNodes"
             v-model:selected-edges="selectedEdges"
             :nodes="nodes"
@@ -84,7 +86,16 @@
             :configs="configs"
             :event-handlers="eventHandlers()"
             class="main-box"
-          />
+          >
+            <template #edge-label="{ edge, ...slotProps }">
+              <v-edge-label
+                :text="edge.label"
+                align="center"
+                vertical-align="above"
+                v-bind="slotProps"
+              />
+            </template>
+          </v-network-graph>
         </el-main>
       </el-container>
     </el-container>
@@ -104,8 +115,9 @@ import remove from "../requests/remove";
 import extractNodes from "../utils/extract-nodes";
 import extractEdges from "../utils/extract-edges";
 import extractNodesRelations from "../utils/extract-nodes-relations";
-import AddNodeModal from "./AddNodeModal.vue";
-import PersonalProfile from "./PersonProfile.vue";
+import AddNodeModal from "./node/AddNodeModal.vue";
+import AddEdgeModal from "./edge/AddEdgeModal.vue";
+import PersonalProfile from "./node/person/PersonProfile.vue";
 import { Search } from "@element-plus/icons-vue";
 import { markRaw } from "vue";
 export default {
@@ -113,12 +125,15 @@ export default {
     AddNodeModal,
     PersonalProfile,
     Search,
+    AddEdgeModal,
   },
   data() {
     return {
+      zoomLevel:1.2,
       Search: markRaw(Search),
       inputSearch: "",
       isVisibleAddNodeModal: false,
+      isVisibleAddEdgeModal: false,
       nodes: {},
       edges: {},
       nextEdgeIndex: 0,
@@ -138,23 +153,29 @@ export default {
     checkUpdatedNodes() {
       return this.$store.state.nodes;
     },
-    checkAddUserModal() {
+    checkAddNodeModal() {
       return this.$store.state.isVisibleAddNodeModal;
     },
     checkPersonProfileModal() {
       return this.$store.state.isVisiblePersonProfile;
+    },
+    checkEdgeModal() {
+      return this.$store.state.isVisibleAddEdgeModal;
     },
   },
   watch: {
     checkUpdatedNodes() {
       this.nodes = this.$store.state.nodes;
     },
-    checkAddUserModal() {
+    checkAddNodeModal() {
       this.isVisibleAddNodeModal = this.$store.state.isVisibleAddNodeModal;
     },
     checkPersonProfileModal() {
       this.isVisiblePersonProfileComponent =
         this.$store.state.isVisiblePersonProfile;
+    },
+    checkEdgeModal() {
+      this.isVisibleAddEdgeModal = this.$store.state.isVisibleAddEdgeModal;
     },
   },
   async created() {
@@ -187,18 +208,6 @@ export default {
       const { data: edges } = await get(`api/relations`);
       this.edges = extractEdges(edges);
       this.nextEdgeIndex = Object.keys(this.edges).length + 1;
-    },
-    async addNode() {
-      let { data: node } = await post("api/users", {
-        name: Math.random().toString(36).slice(2), // Generate a random name
-        personalId: Math.random().toString(36).slice(2), // Generate a random personalId
-      });
-      const nodeId = node.elementId;
-      const name = node.properties.name;
-      const personalId = node.properties.personalId;
-
-      this.nodes[nodeId] = { name, personalId };
-      this.nextNodeIndex++;
     },
 
     async removeNode() {
@@ -234,12 +243,17 @@ export default {
       this.nextEdgeIndex = 0;
       this.nextNodeIndex = 0;
     },
-    addUserModalVisibleHandler() {
+    addNodeModalVisibleHandler() {
       this.$store.commit("setAddUserModalVisible", true);
+    },
+    addEdgeModalVisibleHandler() {
+      this.$store.commit("setAddEdgeModalVisible", true);
+      this.$store.commit("setSelectedNodes", this.selectedNodes);
     },
     setVisiblePersonProfileHandler() {
       this.$store.commit("setVisiblePersonProfile", true);
     },
+    setSelectedEdgeHandler() {},
 
     async querySearch(queryString) {
       if (queryString == "") {

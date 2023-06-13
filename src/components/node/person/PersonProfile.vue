@@ -32,9 +32,9 @@
 </template>
 
 <script>
-import remove from "../requests/remove";
-import put from "../requests/put";
-import { NODES_CONFIG } from "../helpers/nodes-config";
+import remove from "../../../requests/remove";
+import put from "../../../requests/put";
+import { NODES_CONFIG } from "../../../helpers/nodes-config";
 import { COLOR_TEAM } from '@/helpers/color-team';
 export default {
   name: "PersonForm",

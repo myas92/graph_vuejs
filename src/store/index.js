@@ -5,6 +5,8 @@ export default createStore({
     nodes: {},
     isVisibleAddNodeModal: false,
     isVisiblePersonProfile: false,
+    isVisibleAddEdgeModal: false,
+    selectedNodes: {},
   },
   getters: {
   },
@@ -17,6 +19,12 @@ export default createStore({
     },
     setVisiblePersonProfile: function (state, payload) {
       state.isVisiblePersonProfile = payload
+    },
+    setAddEdgeModalVisible: function (state, payload) {
+      state.isVisibleAddEdgeModal = payload
+    },
+    setSelectedNodes: function (state, payload) {
+      state.selectedNodes = payload
     },
   },
   actions: {

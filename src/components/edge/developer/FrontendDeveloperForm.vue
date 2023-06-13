@@ -1,17 +1,26 @@
 <template>
   <el-form
-      label-position="left"
+    label-position="left"
     label-width="100px"
     style="max-width: 460px"
-  :model="form" @keyup.enter="addNode">
+    :model="form"
+    @keyup.enter="addNode"
+  >
     <el-form-item label="name">
       <el-input v-model="form.name" autocomplete="off" />
     </el-form-item>
-    <el-form-item label="description">
-      <el-input v-model="form.description" autocomplete="off" />
+    <el-form-item label="personal Id">
+      <el-input v-model="form.personalId" autocomplete="off" />
     </el-form-item>
-    <el-form-item label="link">
-      <el-input v-model="form.link" autocomplete="off" />
+    <el-form-item label="Activity zone">
+      <el-select v-model="form.team" placeholder="please select your zone">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
   </el-form>
   <span class="dialog-footer">
@@ -25,36 +34,42 @@
 </template>
 
 <script>
-import post from "../requests/post";
-import { NODES_CONFIG } from "../helpers/nodes-config";
+import post from "../../../requests/post";
+import { NODES_CONFIG } from "../../../helpers/nodes-config";
+import { COLOR_TEAM } from '@/helpers/color-team';
 export default {
   name: "PersonForm",
-  props: {
-    type: {
-      type: String,
-      default: "",
-    },
-  },
   data() {
     return {
       modalVisible: true,
       form: {
         name: "",
-        description: "",
-        link: "",
+        personalId: "",
+        team:""
       },
+      options: [
+        {
+          value: "network",
+          label: "Network",
+        },
+        {
+          value: "devops",
+          label: "Devops",
+        },
+      ],
     };
   },
+  async created() {},
   methods: {
     async addNode() {
-      let nodeType = "Project";
+      let nodeType = "Person";
       let nodes;
       let node;
-      const { name, description, link } = this.form;
-      let { data } = await post("api/projects", {
+      const { name, personalId, team } = this.form;
+      let { data } = await post("api/users", {
         name: name != "" ? name : Math.random().toString(36).slice(2),
-        description,
-        link,
+        personalId: personalId,
+        team: team
       });
       node = data;
       const nodeId = node.elementId;
@@ -62,7 +77,9 @@ export default {
       nodes[nodeId] = {
         ...node.properties,
         ...NODES_CONFIG[nodeType],
+         color: COLOR_TEAM[team]
       };
+
       this.$store.commit("setNodes", nodes);
       this.$store.commit("setAddUserModalVisible", false);
     },
@@ -81,5 +98,8 @@ export default {
 }
 .el-input {
   width: 300px;
+}
+.dialog-footer button:first-child {
+  margin-right: 10px;
 }
 </style>
