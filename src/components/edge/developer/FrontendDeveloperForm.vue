@@ -4,16 +4,13 @@
     label-width="100px"
     style="max-width: 460px"
     :model="form"
-    @keyup.enter="addNode"
+    @keyup.enter="addEdge"
   >
-    <el-form-item label="name">
-      <el-input v-model="form.name" autocomplete="off" />
+    <el-form-item label="description">
+      <el-input v-model="form.description" autocomplete="off" />
     </el-form-item>
-    <el-form-item label="personal Id">
-      <el-input v-model="form.personalId" autocomplete="off" />
-    </el-form-item>
-    <el-form-item label="Activity zone">
-      <el-select v-model="form.team" placeholder="please select your zone">
+    <el-form-item label="Level">
+      <el-select v-model="form.level" placeholder="please select level">
         <el-option
           v-for="item in options"
           :key="item.value"
@@ -25,69 +22,68 @@
   </el-form>
   <span class="dialog-footer">
     <el-button
-      @click="addUserModalVisibleHandler"
-      @keyup.esc="addUserModalVisibleHandler"
+      @click="addEdgeModalVisibleHandler"
+      @keyup.esc="addEdgeModalVisibleHandler"
       >Cancel</el-button
     >
-    <el-button type="primary" @click="addNode"> Confirm </el-button>
+    <el-button type="primary" @click="addEdge"> Confirm </el-button>
   </span>
 </template>
 
 <script>
 import post from "../../../requests/post";
-import { NODES_CONFIG } from "../../../helpers/nodes-config";
-import { COLOR_TEAM } from '@/helpers/color-team';
 export default {
-  name: "PersonForm",
+  name: "FrontendDeveloperForm",
+  props: {
+    label: {
+      type: String,
+      default: "Frontend Developer",
+    },
+  },
   data() {
     return {
       modalVisible: true,
       form: {
-        name: "",
-        personalId: "",
-        team:""
+        description: "",
+        lever: "",
       },
       options: [
         {
-          value: "network",
-          label: "Network",
+          value: "1",
+          label: "level 1",
         },
         {
-          value: "devops",
-          label: "Devops",
+          value: "2",
+          label: "level 2",
+        },
+        {
+          value: "3",
+          label: "level 3",
         },
       ],
     };
   },
   async created() {},
   methods: {
-    async addNode() {
-      let nodeType = "Person";
-      let nodes;
-      let node;
-      const { name, personalId, team } = this.form;
-      let { data } = await post("api/users", {
-        name: name != "" ? name : Math.random().toString(36).slice(2),
-        personalId: personalId,
-        team: team
+    async addEdge() {
+      const [source, target] = this.$store.state.selectedNodes;
+      let { data: edge } = await post("api/relations", {
+        from: source,
+        to: target,
+        label: this.label,
+        meta: this.form,
       });
-      node = data;
-      const nodeId = node.elementId;
-      nodes = this.$store.state.nodes;
-      nodes[nodeId] = {
-        ...node.properties,
-        ...NODES_CONFIG[nodeType],
-         color: COLOR_TEAM[team]
-      };
-
-      this.$store.commit("setNodes", nodes);
-      this.$store.commit("setAddUserModalVisible", false);
+      const edgeId = edge[0]._fields[0].elementId;
+      const edges = this.$store.state.edges;
+      edges[edgeId] = { source, target, label: this.label};
+      this.$store.commit("setEdges", edges);
+      this.$store.commit("setAddEdgeModalVisible", false);
     },
-    addUserModalVisibleHandler() {
-      this.$store.commit("setAddUserModalVisible", false);
+    addEdgeModalVisibleHandler() {
+      this.$store.commit("setAddEdgeModalVisible", false);
     },
     handleFocusOut() {
-      this.$store.commit("setAddUserModalVisible", false);
+      this.$store.commit("setAddEdgeModalVisible", false);
     },
   },
 };

@@ -14,9 +14,10 @@ const configs = defineConfigs({
                 const forceLink = d3.forceLink(edges).id(d => d.id)
                 return d3
                     .forceSimulation(nodes)
-                    .force("edge", forceLink.distance(150).strength(0.5))
+                    // .force("edge", forceLink.distance(150).strength(0.5))
+                    .force("edge", forceLink.distance(100).strength(0.5))
                     .force("charge", d3.forceManyBody().strength(-100))
-                    .force("center", d3.forceCenter().strength(0.05))
+                    .force("center", d3.forceCenter().strength(0.01))
                     .alphaMin(0.01)
             }
         })
@@ -27,7 +28,7 @@ const configs = defineConfigs({
             visible: true,
             direction: "south",
             directionAutoAdjustment: true,
-            fontSize: 12,
+            fontSize: 10,
         },
         normal: {
             type: node => node.type,
@@ -43,6 +44,12 @@ const configs = defineConfigs({
           },
     },
     edge: {
+        label: {
+            visible: true,
+            direction: "south",
+            directionAutoAdjustment: true,
+            fontSize: 8,
+        },
         selectable: true,
         gap: 10,
         type: "curve",

@@ -23,6 +23,9 @@
       <div v-if="form.edge == 'Backend Developer'">
         <BackendDeveloperForm :label="form.edge" />
       </div>
+      <div v-if="form.edge == 'Frontend Developer'">
+        <FrontendDeveloperForm :label="form.edge" />
+      </div>
     </el-form>
     <slot></slot>
   </el-dialog>
@@ -30,11 +33,13 @@
 
 <script>
 import BackendDeveloperForm from "./developer/BackendDeveloperForm.vue";
+import FrontendDeveloperForm from "./developer/FrontendDeveloperForm.vue";
 import { EDGE_TYPES_USER_PROJECT } from "../../helpers/edges-types-user-project";
 export default {
   name: "EdgeSelectorComponent",
   components: {
     BackendDeveloperForm,
+    FrontendDeveloperForm
   },
   data() {
     return {

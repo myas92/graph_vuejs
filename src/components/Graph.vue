@@ -75,38 +75,44 @@
           </el-col>
         </el-header>
         <!-- <el-footer>Footer</el-footer> -->
-  <el-main>
-        <div class="tooltip-wrapper">
-          <v-network-graph
-            v-model:zoom-level="zoomLevel"
-            v-model:selected-nodes="selectedNodes"
-            v-model:selected-edges="selectedEdges"
-            :nodes="nodes"
-            :edges="edges"
-            :layouts="layouts"
-            :configs="configs"
-            :event-handlers="eventHandlers()"
-            class="main-box"
-          >
-            <template #edge-label="{ edge, ...slotProps }">
-              <v-edge-label
-                :text="edge.label"
-                align="center"
-                vertical-align="above"
-                v-bind="slotProps"
-              />
-            </template>
-          </v-network-graph>
+        <el-main>
+          <div class="tooltip-wrapper">
+            <v-network-graph
+              v-model:zoom-level="zoomLevel"
+              v-model:selected-nodes="selectedNodes"
+              v-model:selected-edges="selectedEdges"
+              :nodes="nodes"
+              :edges="edges"
+              :layouts="layouts"
+              :configs="configs"
+              :event-handlers="eventHandlers()"
+              class="main-box"
+            >
+              <template #edge-label="{ edge, ...slotProps }">
+                <v-edge-label
+                  :text="edge.label"
+                  align="center"
+                  vertical-align="above"
+                  v-bind="slotProps"
+                />
+              </template>
+            </v-network-graph>
 
-          <div
-            ref="tooltip"
-            class="tooltip"
-            :style="{ opacity: tooltipOpacity }"
-          >
-            <div>{{ nodes[targetNodeId]?.name ?? "" }}</div>
+            <div
+              ref="tooltip"
+              class="tooltip"
+              :style="{ opacity: tooltipOpacity }"
+            >
+              <div>
+                <div>Type: {{ nodes[targetNodeId]?.nodeType ?? "" }}</div>
+                <div>name: {{ nodes[targetNodeId]?.name ?? "" }}</div>
+                <div v-if="nodes[targetNodeId]?.team">
+                  Team: {{ nodes[targetNodeId]?.team ?? "" }}
+                </div>
+              </div>
+            </div>
           </div>
-           </div>
-            </el-main>
+        </el-main>
       </el-container>
     </el-container>
   </div>
@@ -130,6 +136,12 @@ import AddEdgeModal from "./edge/AddEdgeModal.vue";
 import PersonalProfile from "./node/person/PersonProfile.vue";
 import { Search } from "@element-plus/icons-vue";
 import { markRaw } from "vue";
+import {
+  getRelationTypeModal,
+  getTypeOfSourceTarget,
+  isExistEdge,
+  isUserSelectedNodes,
+} from "../utils/nodes-utils";
 export default {
   components: {
     AddNodeModal,
@@ -184,6 +196,7 @@ export default {
     },
     checkUpdatedEdges() {
       this.edges = this.$store.state.edges;
+      this.selectedNodes = [];
     },
     checkAddNodeModal() {
       this.isVisibleAddNodeModal = this.$store.state.isVisibleAddNodeModal;
@@ -243,18 +256,6 @@ export default {
       }
     },
 
-    async addEdge() {
-      if (this.selectedNodes.length !== 2) return;
-      const [source, target] = this.selectedNodes;
-      let { data: edge } = await post("api/relations", {
-        from: source,
-        to: target,
-      });
-      const edgeId = edge[0]._fields[0].elementId;
-      this.edges[edgeId] = { source, target };
-      this.nextEdgeIndex++;
-    },
-
     async removeEdge() {
       for (const edgeId of this.selectedEdges) {
         await remove(`api/relations/${edgeId}`);
@@ -273,8 +274,26 @@ export default {
       this.$store.commit("setAddUserModalVisible", true);
     },
     addEdgeModalVisibleHandler() {
-      this.$store.commit("setAddEdgeModalVisible", true);
-      this.$store.commit("setSelectedNodes", this.selectedNodes);
+      if (!isExistEdge(this.edges, this.selectedNodes)) {
+        if (!isUserSelectedNodes(this.nodes, this.selectedNodes)) {
+          let { sourceType, targetType } = getTypeOfSourceTarget(
+            this.nodes,
+            this.selectedNodes
+          );
+          let ModalType = getRelationTypeModal({ sourceType, targetType });
+          if (ModalType == "PersonToProject") {
+            this.$store.commit("setAddEdgeModalVisible", true);
+            this.$store.commit("setSelectedNodes", this.selectedNodes);
+          }
+        } else {
+          console.log("Relation between two person is not possible");
+          return;
+        }
+      } else {
+        console.log("Relation is exist");
+        this.selectedNodes = [];
+        return;
+      }
     },
     setVisiblePersonProfileHandler() {
       this.$store.commit("setVisiblePersonProfile", true);
@@ -373,8 +392,8 @@ el-col {
   position: relative;
 }
 .tooltip {
-  top: 100px !important;
-  right: 120px !important;
+  top: 0px !important;
+  right: 0px !important;
   opacity: 0;
   position: absolute;
   width: 200px;
@@ -382,10 +401,10 @@ el-col {
   display: grid;
   place-content: top;
   text-align: center;
-  font-size: 12px;
-  background-color: #adcf87;
-  border: 1px solid #465977;
-  box-shadow: 2px 2px 2px #aaa;
+  font-size: 1.2rem;
+  background-color: #1fab89;
+  border-radius: 4px;
+  color: #ffffff;
   transition: opacity 0.2s linear;
   pointer-events: none;
 }
