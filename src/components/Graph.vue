@@ -75,9 +75,10 @@
           </el-col>
         </el-header>
         <!-- <el-footer>Footer</el-footer> -->
-        <el-main>
+  <el-main>
+        <div class="tooltip-wrapper">
           <v-network-graph
-          v-model:zoom-level="zoomLevel"
+            v-model:zoom-level="zoomLevel"
             v-model:selected-nodes="selectedNodes"
             v-model:selected-edges="selectedEdges"
             :nodes="nodes"
@@ -96,7 +97,16 @@
               />
             </template>
           </v-network-graph>
-        </el-main>
+
+          <div
+            ref="tooltip"
+            class="tooltip"
+            :style="{ opacity: tooltipOpacity }"
+          >
+            <div>{{ nodes[targetNodeId]?.name ?? "" }}</div>
+          </div>
+           </div>
+            </el-main>
       </el-container>
     </el-container>
   </div>
@@ -129,7 +139,9 @@ export default {
   },
   data() {
     return {
-      zoomLevel:1.2,
+      targetNodeId: {},
+      tooltipOpacity: 0,
+      zoomLevel: 1.2,
       Search: markRaw(Search),
       inputSearch: "",
       isVisibleAddNodeModal: false,
@@ -201,6 +213,13 @@ export default {
             this.selectedInfo.nodeId = resNode.elementId;
             this.selectedLabel = resNode.labels[0];
           }
+        },
+        "node:pointerover": ({ node }) => {
+          this.targetNodeId = node;
+          this.tooltipOpacity = 1; // show
+        },
+        "node:pointerout": (_) => {
+          this.tooltipOpacity = 0; // hide
         },
       };
     },
@@ -321,7 +340,7 @@ export default {
 };
 </script>
 
-<style>
+<style lang="css">
 .graph {
   width: 800px;
   height: 600px;
@@ -348,5 +367,26 @@ el-col {
 }
 .btn-100 {
   width: 100% !important;
+}
+
+.tooltip-wrapper {
+  position: relative;
+}
+.tooltip {
+  top: 100px !important;
+  right: 120px !important;
+  opacity: 0;
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  display: grid;
+  place-content: top;
+  text-align: center;
+  font-size: 12px;
+  background-color: #adcf87;
+  border: 1px solid #465977;
+  box-shadow: 2px 2px 2px #aaa;
+  transition: opacity 0.2s linear;
+  pointer-events: none;
 }
 </style>

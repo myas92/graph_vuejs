@@ -3,7 +3,7 @@ export const NODES_CONFIG = {
         type: "circle",
     },
     Project: {
-        color: 'gray',
+        color: '#FC5185',
         type: "rect",
         width: 50,
         height: 32,

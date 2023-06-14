@@ -10,28 +10,16 @@ const configs = defineConfigs({
             positionFixedByDrag: false,
             positionFixedByClickWithAltKey: true,
             createSimulation: (d3, nodes, edges) => {
-              // d3-force parameters
-              const forceLink = d3.forceLink(edges).id(d => d.id)
-              return d3
-                .forceSimulation(nodes)
-                .force("edge", forceLink.distance(150).strength(0.5))
-                .force("charge", d3.forceManyBody().strength(-800))
-                .force("center", d3.forceCenter().strength(0.05))
-                .alphaMin(0.01)
-    
-        //         // * The following are the default parameters for the simulation.
-        //         // const forceLink = d3.forceLink(edges).id(d => d.id)
-        //         // return d3
-        //         //   .forceSimulation(nodes)
-        //         //   .force("edge", forceLink.distance(100))
-        //         //   .force("charge", d3.forceManyBody())
-        //         //   .force("collide", d3.forceCollide(50).strength(0.2))
-        //         //   .force("center", d3.forceCenter().strength(0.05))
-        //         //   .alphaMin(0.001)
-
-
+                // d3-force parameters
+                const forceLink = d3.forceLink(edges).id(d => d.id)
+                return d3
+                    .forceSimulation(nodes)
+                    .force("edge", forceLink.distance(150).strength(0.5))
+                    .force("charge", d3.forceManyBody().strength(-100))
+                    .force("center", d3.forceCenter().strength(0.05))
+                    .alphaMin(0.01)
             }
-          })
+        })
     },
     node: {
         selectable: 2,
@@ -39,18 +27,26 @@ const configs = defineConfigs({
             visible: true,
             direction: "south",
             directionAutoAdjustment: true,
+            fontSize: 12,
         },
         normal: {
             type: node => node.type,
             color: node => node.color,
             width: node => node.width,
             strokeWidth: 2,
-            strokeColor: n => darker(n.color, 20),
-        }
+            strokeColor: node => darker(node.color, 20),
+            radius: 20,
+        },
+        hover: {
+            color: node => darker(node.color, 10),
+            strokeColor: node => darker(node.color, 30),
+          },
     },
     edge: {
         selectable: true,
         gap: 10,
+        type: "curve",
+        color: "#0F4C75",
         normal: {
             width: 2,
         },
