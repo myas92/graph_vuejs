@@ -12,11 +12,12 @@
     >
       <el-form-item label="Type Entity">
         <el-select v-model="form.node" placeholder="Please select a type">
-          <el-option label="Person" value="Person" />
-          <el-option label="Project" value="Project" />
-          <el-option label="Service" value="Service" />
-          <el-option label="Physical Server" value="physical_server" />
-          <el-option label="Virtual Server" value="virtual_server" />
+          <el-option
+          v-for="item in nodeTypes"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+          />
         </el-select>
       </el-form-item>
       <div v-if="form.node == 'Person'">
@@ -38,6 +39,7 @@
 <script>
 import PersonForm from "./person/PersonForm.vue";
 import ProjectForm from "./project/ProjectForm.vue";
+import { NODE_TYPES } from "../../helpers/node-types";
 export default {
   name: "MyComponent",
   components: {
@@ -47,6 +49,7 @@ export default {
   data() {
     return {
       modalVisible: true,
+      nodeTypes: NODE_TYPES,
       form: {
         node: "",
       },

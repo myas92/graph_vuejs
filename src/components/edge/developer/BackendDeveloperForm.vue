@@ -32,8 +32,6 @@
 
 <script>
 import post from "../../../requests/post";
-import { NODES_CONFIG } from "../../../helpers/nodes-config";
-import { COLOR_TEAM } from "@/helpers/color-team";
 export default {
   name: "BackendDeveloperForm",
   props: {
@@ -76,23 +74,9 @@ export default {
         meta: this.form,
       });
       const edgeId = edge[0]._fields[0].elementId;
-      // this.edges[edgeId] = { source, target };
-      // this.nextEdgeIndex++;
-      // let { data } = await post("api/users", {
-      //   name: name != "" ? name : Math.random().toString(36).slice(2),
-      //   personalId: personalId,
-      //   team: team
-      // });
-      // node = data;
-      // const nodeId = node.elementId;
-      // nodes = this.$store.state.nodes;
-      // nodes[nodeId] = {
-      //   ...node.properties,
-      //   ...NODES_CONFIG[nodeType],
-      //    color: COLOR_TEAM[team]
-      // };
-
-      // this.$store.commit("setNodes", nodes);
+      const edges = this.$store.state.edges;
+      edges[edgeId] = { source, target };
+      this.$store.commit("setEdges", edges);
       this.$store.commit("setAddEdgeModalVisible", false);
     },
     addEdgeModalVisibleHandler() {

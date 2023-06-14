@@ -3,6 +3,7 @@ import { createStore } from 'vuex'
 export default createStore({
   state: {
     nodes: {},
+    edges: {},
     isVisibleAddNodeModal: false,
     isVisiblePersonProfile: false,
     isVisibleAddEdgeModal: false,
@@ -13,6 +14,9 @@ export default createStore({
   mutations: {
     setNodes: function (state, payload) {
       state.nodes = payload
+    },
+    setEdges: function (state, payload) {
+      state.edges = payload
     },
     setAddUserModalVisible: function (state, payload) {
       state.isVisibleAddNodeModal = payload

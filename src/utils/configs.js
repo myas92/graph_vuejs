@@ -52,7 +52,7 @@ const configs = defineConfigs({
         selectable: true,
         gap: 10,
         normal: {
-            width: 1,
+            width: 2,
         },
     },
 });

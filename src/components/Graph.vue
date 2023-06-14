@@ -24,7 +24,7 @@
                 type="primary"
                 :disabled="selectedNodes.length != 2"
                 @click="addEdgeModalVisibleHandler"
-                >add</el-button
+                >Add Relation</el-button
               >
             </el-col>
             <el-col :span="9">
@@ -33,7 +33,7 @@
                 type="danger"
                 :disabled="selectedEdges.length == 0"
                 @click="removeEdge"
-                >remove</el-button
+                >Remove Relation</el-button
               >
             </el-col>
           </el-row>
@@ -62,7 +62,7 @@
               clearable
               class="inline-input w-50"
               placeholder="Please Input"
-              @select="handleSelect"
+              @select="handleSelectInSearchBox"
               @change="refresh"
             />
             <el-input-number
@@ -153,6 +153,9 @@ export default {
     checkUpdatedNodes() {
       return this.$store.state.nodes;
     },
+    checkUpdatedEdges() {
+      return this.$store.state.edges;
+    },
     checkAddNodeModal() {
       return this.$store.state.isVisibleAddNodeModal;
     },
@@ -166,6 +169,9 @@ export default {
   watch: {
     checkUpdatedNodes() {
       this.nodes = this.$store.state.nodes;
+    },
+    checkUpdatedEdges() {
+      this.edges = this.$store.state.edges;
     },
     checkAddNodeModal() {
       this.isVisibleAddNodeModal = this.$store.state.isVisibleAddNodeModal;
@@ -208,6 +214,7 @@ export default {
       const { data: edges } = await get(`api/relations`);
       this.edges = extractEdges(edges);
       this.nextEdgeIndex = Object.keys(this.edges).length + 1;
+      this.$store.commit("setEdges", this.edges);
     },
 
     async removeNode() {
@@ -278,7 +285,7 @@ export default {
       return result;
     },
 
-    async handleSelect(item) {
+    async handleSelectInSearchBox(item) {
       console.log(item);
       let response;
       this.nodeSearched = item;

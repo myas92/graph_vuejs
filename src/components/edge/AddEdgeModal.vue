@@ -4,48 +4,33 @@
     title="Add Relation"
     :before-close="addEdgeModalVisibleHandler"
   >
-    <el-form       
-    label-position="left"
-    label-width="100px"
-    style="max-width: 460px" :model="form">
+    <el-form
+      label-position="left"
+      label-width="100px"
+      style="max-width: 460px"
+      :model="form"
+    >
       <el-form-item label="Type Entity">
         <el-select v-model="form.edge" placeholder="Please select a type">
-          <el-option label="Backend Developer" value="Backend Developer" />
-          <el-option label="Frontend Developer" value="FrontendDeveloper" />
-          <el-option label="Network Technical Support" value="NetworkTechnicalSupport" />
-          <el-option label="Network Engineer" value="NetworkEngineer" />
-          <el-option label="DevOps Technical Support" value="DevOpsTechnicalSupport" />
-          <el-option label="DevOps Engineer" value="DevOpsEngineer" />
-          <el-option label="Security Technical Support" value="DevOpsTechnicalSupport" />
-          <el-option label="Security Engineer" value="SecurityEngineer" />
-          <el-option label="Project Manager" value="ProjectManager" />
-          <el-option label="Product Manager" value="ProjectManager" />
-          <el-option label="UI/UX Designer" value="Designer" />
-          <el-option label="Database Administrator" value="DatabaseAdministrator" />
-          <el-option label="Quality Assurance" value="QualityAssurance" />
-          <el-option label="Data Scientist" value="DataScientist" />
-          <el-option label="Technical Writer" value="TechnicalWriter" />
-          <el-option label="System Administrator" value="SystemAdministrator" />
+          <el-option
+            v-for="item in edgeTypesUserProject"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </el-form-item>
       <div v-if="form.edge == 'Backend Developer'">
         <BackendDeveloperForm :label="form.edge" />
       </div>
-      <!-- <div v-if="form.edge == 'FrontendDeveloper'">
-        <ProjectForm />
-      </div> -->
-      <!-- <div v-if="form.edge == 'Service'">
-        <el-form-item label="Service Name">
-          <el-input v-model="form.service.name" autocomplete="off" />
-        </el-form-item>
-      </div> -->
     </el-form>
     <slot></slot>
   </el-dialog>
 </template>
 
 <script>
-import BackendDeveloperForm from './developer/BackendDeveloperForm.vue'
+import BackendDeveloperForm from "./developer/BackendDeveloperForm.vue";
+import { EDGE_TYPES_USER_PROJECT } from "../../helpers/edges-types-user-project";
 export default {
   name: "EdgeSelectorComponent",
   components: {
@@ -54,6 +39,7 @@ export default {
   data() {
     return {
       modalVisible: true,
+      edgeTypesUserProject: EDGE_TYPES_USER_PROJECT,
       form: {
         edge: "",
       },
