@@ -83,7 +83,6 @@
               v-model:selected-edges="selectedEdges"
               :nodes="nodes"
               :edges="edges"
-              :layouts="layouts"
               :configs="configs"
               :event-handlers="eventHandlers()"
               class="main-box"
@@ -103,12 +102,30 @@
               class="tooltip"
               :style="{ opacity: tooltipOpacity }"
             >
-              <div>
+              <div v-if="nodes[targetNodeId]?.nodeType == 'Person'">
                 <div>Type: {{ nodes[targetNodeId]?.nodeType ?? "" }}</div>
-                <div>name: {{ nodes[targetNodeId]?.name ?? "" }}</div>
+                <div>Name: {{ nodes[targetNodeId]?.name ?? "" }}</div>
+                <div>Full Name: {{ nodes[targetNodeId]?.fullName ?? "" }}</div>
                 <div v-if="nodes[targetNodeId]?.team">
                   Team: {{ nodes[targetNodeId]?.team ?? "" }}
                 </div>
+              </div>
+              <div
+                v-else-if="nodes[targetNodeId]?.nodeType == 'VirtualMachine'"
+              >
+                <div>Type: {{ nodes[targetNodeId]?.nodeType ?? "" }}</div>
+                <div>Name: {{ nodes[targetNodeId]?.name ?? "" }}</div>
+                <div>Full Name: {{ nodes[targetNodeId]?.fullName ?? "" }}</div>
+                <div>IP: {{ nodes[targetNodeId]?.ip ?? "" }}</div>
+                <div>OS: {{ nodes[targetNodeId]?.os ?? "" }}</div>
+                <div>
+                  environment: {{ nodes[targetNodeId]?.environment ?? "" }}
+                </div>
+                <div>zone: {{ nodes[targetNodeId]?.zone ?? "" }}</div>
+              </div>
+              <div v-else>
+                <div>Type: {{ nodes[targetNodeId]?.nodeType ?? "" }}</div>
+                <div>Name: {{ nodes[targetNodeId]?.name ?? "" }}</div>
               </div>
             </div>
           </div>
@@ -158,11 +175,10 @@ export default {
       inputSearch: "",
       isVisibleAddNodeModal: false,
       isVisibleAddEdgeModal: false,
-      nodes: {},
-      edges: {},
+      nodes: [],
+      edges: [],
       nextEdgeIndex: 0,
       nextNodeIndex: 0,
-      layouts: dataInfo.layouts,
       configs: config.configs,
       selectedEdges: [],
       selectedNodes: [],
@@ -226,6 +242,9 @@ export default {
             this.selectedInfo.nodeId = resNode.elementId;
             this.selectedLabel = resNode.labels[0];
           }
+        },
+        "node:click": async ({ node }) => {
+          await this.clickOnNodeHandler(node);
         },
         "node:pointerover": ({ node }) => {
           this.targetNodeId = node;
@@ -302,25 +321,34 @@ export default {
 
     async querySearch(queryString) {
       if (queryString == "") {
-        await this.getAllNodes();
-        await this.getAllEdges();
+        // await this.getAllNodes();
+        // await this.getAllEdges();
       }
       const { data: nodes } = await get(
         `api/nodes/search?input=${queryString}`
       );
       let result = [];
+      let preRes = {
+        Person: [],
+        Project: [],
+        VirtualMachine: [],
+      };
       nodes.map((node) => {
         let currNode = node._fields[0];
         const elementId = currNode.elementId;
         const name = currNode.properties.name;
         const label = currNode.labels[0];
+        preRes[label].push({
+          value: `${name}:${label}`,
+          elementId: elementId,
+        });
         let obj = {
           value: `${name}:${label}`,
           elementId: elementId,
         };
         result.push(obj);
       });
-      return result;
+      return [...preRes["Person"], ...preRes["Project"], ...preRes["VirtualMachine"]];
     },
 
     async handleSelectInSearchBox(item) {
@@ -352,8 +380,43 @@ export default {
     },
 
     async refresh() {
-      await this.getAllNodes();
-      await this.getAllEdges();
+      // await this.getAllNodes();
+      // await this.getAllEdges();
+    },
+    async clickOnNodeHandler(node) {
+      if (this.nodes[node]?.nodeType == "VirtualMachine") {
+        const { data: response } = await get(
+          `api/nodes/${node}/deep/1?nodeType=VirtualMachine`
+        );
+
+        let { nodes, edges } = extractNodesRelations(response);
+        for (const key in nodes) {
+          this.nodes[key] = nodes[key];
+        }
+        for (const key in edges) {
+          this.edges[key] = edges[key];
+        }
+
+        this.$store.commit("setNodes", this.nodes);
+        this.$store.commit("setEdges", this.edges);
+      }
+
+      if (this.nodes[node]?.nodeType == "Project") {
+        const { data: response } = await get(
+          `api/nodes/${node}/deep/1?nodeType=Project`
+        );
+
+        let { nodes, edges } = extractNodesRelations(response);
+        for (const key in nodes) {
+          this.nodes[key] = nodes[key];
+        }
+        for (const key in edges) {
+          this.edges[key] = edges[key];
+        }
+
+        this.$store.commit("setNodes", this.nodes);
+        this.$store.commit("setEdges", this.edges);
+      }
     },
   },
 };
@@ -396,11 +459,11 @@ el-col {
   right: 0px !important;
   opacity: 0;
   position: absolute;
-  width: 200px;
-  height: 100px;
+  width: 400px;
+  padding: 10px;
   display: grid;
   place-content: top;
-  text-align: center;
+  text-align: left;
   font-size: 1.2rem;
   background-color: #1fab89;
   border-radius: 4px;
@@ -408,4 +471,8 @@ el-col {
   transition: opacity 0.2s linear;
   pointer-events: none;
 }
+    svg{
+        background-color: #dddddd;
+        transform: scale(0.99);
+    }
 </style>

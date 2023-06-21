@@ -4,6 +4,7 @@ function setEdgeIntoEdges(edges, edge) {
      const target = edge.endNodeElementId
      const label = edge.properties.label
      edges[`${edge.elementId}`] = { source: `${source}`, target: `${target}`, label: `${label}` }
+     // edges[`${edge.elementId}`] = { source: `${source}`, target: `${target}` }
      return edges
 }
 

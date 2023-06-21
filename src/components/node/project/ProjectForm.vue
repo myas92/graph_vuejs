@@ -60,6 +60,7 @@ export default {
       const nodeId = node.elementId;
       nodes = this.$store.state.nodes;
       nodes[nodeId] = {
+        nodeType,
         ...node.properties,
         ...NODES_CONFIG[nodeType],
       };

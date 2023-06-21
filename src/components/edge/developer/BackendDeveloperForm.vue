@@ -75,7 +75,7 @@ export default {
       });
       const edgeId = edge[0]._fields[0].elementId;
       const edges = this.$store.state.edges;
-      edges[edgeId] = { source, target };
+      edges[edgeId] = { source, target , label: this.label};
       this.$store.commit("setEdges", edges);
       this.$store.commit("setAddEdgeModalVisible", false);
     },

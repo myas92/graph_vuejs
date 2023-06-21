@@ -74,6 +74,7 @@ export default {
       node = data;
       nodes = this.$store.state.nodes;
       nodes[nodeId] = {
+        nodeType,
         ...node.properties,
         ...NODES_CONFIG[nodeType],
         color: COLOR_TEAM[team]
