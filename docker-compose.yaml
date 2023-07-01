@@ -1,0 +1,25 @@
+version: '3'
+services: 
+    app:
+      image: node
+      volumes:
+      - .:/app
+      links:
+      - neo4j
+      ports:
+      - "3000:3000"
+      working_dir: /app
+      entrypoint: node index.js
+    neo4j:
+      image: neo4j:latest # Pull neo4j image
+      ports:
+      - "7474:7474"
+      - "7687:7687"
+      - "7473:7473" # map Port local port to container port
+      environment:
+        - NEO4J_AUTH=${DB_USERNAME}/${DB_PASSWORD} # neo4j Config because started with NEO4j_
+        - NEO4J_dbms_memory_pagecache_size=1G # neo4j Config because started with NEO4j_
+        - DB_USERNAME=${DB_USERNAME} # local variable
+        - DB_PASSWORD=${DB_PASSWORD} # local variable
+      volumes:
+        - ./data:/data 

@@ -1,34 +1,22 @@
-# graph
-
-## Project setup
+Start Project
+## Ubuntu
 ```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
+sudo apt-get install build-essential
+make
 ```
 
-### Compiles and minifies for production
-```
-npm run build
+
+### Create constraints
+```bash
+CREATE CONSTRAINT FOR (n:Person) REQUIRE (n.personalId) IS UNIQUE
 ```
 
-### Lints and fixes files
-```
-npm run lint
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Write Query
+https://neo4j.com/docs/cypher-manual/current/clauses/
 
-### Add Router
-```
-vue add router
-```
 
-### add VUEX
+## Get Single Nodes
 ```
-vue add vuex
+MATCH (a) WHERE not ((a)--()) RETURN *;
 ```
